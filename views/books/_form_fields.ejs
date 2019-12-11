@@ -37,7 +37,8 @@
 <div class="form-row">
   <div class="form-item form-item-no-grow">
     <label>Cover</label>
-    <input type="file" name="cover" class="book-cover filepond">
+    <input type="file" name="cover" class="book-cover">
+    <!-- here we put name as cover not coverImageName as in our book model because here it will be not just string(the name of the image file) but file itself -->
   </div>
   <div class="form-item">
     <label>Description</label>

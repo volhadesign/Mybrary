@@ -7,8 +7,8 @@ const Author = require('../models/author');
 //All Authors Route
 
 router.get('/', async (req, res) => {
-  let searchOptions = {}
-  if (req.query.name != null && req.query.name !== '') {//we don't use here req.body because it's a get request sends information in query string (in url) ao name paramerer will be in a query string. The post request sends info through the body 
+  let searchOptions = {};
+  if (req.query.name != null && req.query.name !== '') {//we don't use here req.body because it's a get request sends information in query string (in url) ao name paramerer will be in a query string. The post request sends info through the body
     searchOptions.name = new RegExp(req.query.name, 'i')
   }
   try {
