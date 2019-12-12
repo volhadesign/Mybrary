@@ -66,8 +66,8 @@ router.post('/', upload.single('cover'),
   })//here we don't put the cover into this object yet because first we need to create the cover image file in the file system get the name from it and then save it into the book object. the easier way to do this is to use the library multer in order to create an actual file
 try {
   const newBook = await book.save()
-  //res.redirect(`books/${newBook.id}`)
-  res.redirect('/books')
+  res.redirect(`books/${newBook.id}`)
+
 
 } catch(e) {
   console.error(e)
@@ -77,13 +77,90 @@ try {
   renderNewPage(res, book, true)//we are passing existing book object and this does has an error
 }
 })
+//Show book Route
+router.get('/:id', async (req, res) => {
+  try{
+    const book = await Book.findById(req.params.id)
+                           .populate('author')
+                           .exec()
+    res.render('books/show', { book: book })
+  } catch {
+    res.redirect('/')
+  }
+})
+//Edit Book Route
+router.get('/:id/edit', async (req, res) => {//in the result it will be books/new
+  try {
+  const book = await Book.findById(req.params.id)
+  renderEditPage(res, book)//we're passing new book here and there won't be any error
+  } catch {
+  res.redirect('/')
+  }
+
+})
+//Update Book Route
+router.put('/:id', upload.single('cover'),
+ async (req, res) => {//asyncronise function
+  let book
+try {
+  book = await Book.findById(req.params.id)
+  book.title = req.body.title
+  book.author = req.body.author
+  book.publishDate = new Date(req.body.publishDate)
+  book.pageCount = req.body.pageCount
+  book.description = req.body.description
+  //?????? what to do with cover image
+  await book.save()
+  res.redirect(`/books/${book.id}`)
+} catch(err) {
+  console.log(err)
+  if (book != null) {
+  renderEditPage(res, book, true)
+} else {
+  redirect('/')
+}
+
+}
+})
+//Delete Book Page
+router.delete('/:id', async (req, res) => {
+  let book
+  try {
+    book = await Book.findById(req.params.id)
+    await book.remove()
+    res.redirect('/books')
+  } catch {
+    if (book != null) {
+      res.render('books/show', {
+        book: book,
+        errorMessage: 'Could not remove book'
+      })
+    } else {
+      res.redirect('/')
+    }
+  }
+})
+
+
+
+
 
 function removeBookCover(fileName){
   fs.unlink(path.join(uploadPath, fileName), err => {
     if (err) console.error(err);
     }) //this will remove the file that we don't want anymore on server(because there've been an error during saving). uploadPath will give us public/uploads/bookcovers and we wanna combine fileName at the end of the path.So it's gonna get rid of any file that has fileName iside bookCovers folder
 }
-async function renderNewPage(res, book, hasError = false){//hasError has default value. Sometimes we render a newBook sometimes we render an existing book
+
+async function renderNewPage(res, book, hasError = false){
+  renderFormPage(res, book, 'new', hasError)
+}
+
+async function renderEditPage(res, book, hasError = false) {
+  renderFormPage(res, book, 'edit', hasError)
+}
+
+
+async function renderFormPage(res, book, form, hasError = false) {
   try{
     //since we are passing authors to this page first we shoul get all authors
     const authors = await Author.find({})
@@ -93,10 +170,22 @@ async function renderNewPage(res, book, hasError = false){//hasError has default
       authors: authors,
       book: book
     }
-    if(hasError) params.errorMessage = 'Error Creating Book'
-    res.render('books/new', params)
+    if(hasError) {
+      if (form === 'edit') {
+        params.errorMessage = 'Error Updating Book'
+      } else {
+        params.errorMessage = 'Error Creating Book'
+      }
+    }
+    res.render(`books/${form}`, params)
   } catch {
     res.redirect('/books')
   }
 }
+
+
+
+
+
+
 module.exports = router

@@ -1,0 +1,9 @@
+<h2>Edit Book</h2>
+<form action="/books/<%= book.id %>?_method=PUT" method="post" enctype="multipart/form-data">
+   <!-- it tells our server that our form is going to send multipart data which could include a file  -->
+
+  <%- include('_form_fields')%>
+  <a href="/books">Cancel</a>
+  <button type="submit">Update</button>
+</form>
+<!-- here we make partials because the form  input will be shared between new.ejs and edit.ejs  -->
